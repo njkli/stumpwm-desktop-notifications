@@ -1,6 +1,3 @@
-;; TODO: handle all notifications, special handling for an2linux stuff
-;; Currently an icon file is required, some apps don't supply it though.
-;; notify-send provides no icon by default.
 (in-package :desktop-notifications)
 (access:enable-dot-syntax)
 
@@ -57,7 +54,9 @@
     (dolist (l apps)
       (let ((msg-count (length (select-dao 'msg
                                  (includes 'app)
-                                 (mito.dao::where (:= :app #Dl))))))
+                                 (mito.dao::where (:and
+                                                   (:not-null :new)
+                                                   (:= :app #Dl)))))))
         (if (> msg-count 0)
             (push (format nil "~a: ~a" #Dl.name msg-count)
                   notifications-area))))
@@ -69,11 +68,11 @@
   (format nil "~{~(~2,'0x~)~}"
           (map 'list
                #'identity
-               (ironclad:digest-file :sha256 fn))))
+               (if (probe-file fn)
+                   (ironclad:digest-file     :sha256 fn)
+                   (ironclad:digest-sequence :sha256 (babel:string-to-octets fn))))))
 
-(defun id-unknown-app (icon sha256)
-  (describe icon)
-  (describe sha256)
+(defun process-unknown-app (icon sha256)
   (let* ((f-basename (concat sha256 ".png"))
          (f-path (uiop:subpathname* (uiop:pathname-directory-pathname icon) f-basename)))
     (if (uiop:file-exists-p f-path)
@@ -81,20 +80,22 @@
         (uiop:rename-file-overwriting-target icon f-path)))
   (format nil "~a" (ppcre:scan-to-strings "^(.{8})" sha256)))
 
-(defun find-or-create-app (icon)
-  (let ((found-p (find-dao 'app :sha256 (sha256sum icon))))
-    (cond ((null found-p) (progn
-                            (let* ((sha256 (sha256sum icon))
-                                   (name (id-unknown-app icon sha256)))
-                              (create-dao 'app :name name
-                                               :sha256 sha256))))
+(defun find-or-create-app (appname icon)
+  (let* ((an2linux-p (ppcre:scan "^AN2Linux$" appname))
+         (sha256  (if an2linux-p
+                      (sha256sum icon)
+                      (sha256sum appname)))
+         (name    (if an2linux-p
+                      (process-unknown-app icon sha256)
+                      appname))
+         (found-p (find-dao 'app :sha256 sha256)))
+    (cond ((null found-p) (create-dao 'app :name name :sha256 sha256))
           (found-p found-p))))
 
 (defun notify-to-db (appname icon summary body)
   "Notify to sql"
-  (declare (ignore appname))
   (let ((new-msg (create-dao 'msg
-                             :app (find-or-create-app icon)
+                             :app (find-or-create-app appname icon)
                              :summary summary
                              :body body
                              :new t)))
@@ -105,7 +106,6 @@
                           (remove #\Newline #Dnew-msg.summary))
              #Dnew-msg.app.name
              #Dnew-msg.body)))
-
 
 (defun known-app-icons ()
   (maphash (lambda (k v)

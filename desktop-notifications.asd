@@ -10,6 +10,7 @@
                  :cl-hash-util
                  :access
                  :mito
-                 :ironclad)
+                 :ironclad
+                 :babel)
     :components ((:file "package")
                  (:file "desktop-notifications")))
