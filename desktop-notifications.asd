@@ -1,0 +1,15 @@
+(asdf:defsystem #:desktop-notifications
+    :serial t
+    :description "desktop-notifications for StumpWM"
+    :author "Voob of Doom <vod@njk.li>"
+    :license "GPLv3"
+    :depends-on (:stumpwm
+                 ;; notify is loaded from stumpwm-contrib
+                 :notify
+                 :cl-ppcre
+                 :cl-hash-util
+                 :access
+                 :mito
+                 :ironclad)
+    :components ((:file "package")
+                 (:file "desktop-notifications")))
