@@ -75,9 +75,7 @@
 (defun process-unknown-app (icon sha256)
   (let* ((f-basename (concat sha256 ".png"))
          (f-path (uiop:subpathname* (uiop:pathname-directory-pathname icon) f-basename)))
-    (if (uiop:file-exists-p f-path)
-        (uiop:delete-file-if-exists icon)
-        (uiop:rename-file-overwriting-target icon f-path)))
+    (unless (uiop:file-exists-p f-path) (uiop:rename-file-overwriting-target icon f-path)))
   (format nil "~a" (ppcre:scan-to-strings "^(.{8})" sha256)))
 
 (defun find-or-create-app (appname icon)
@@ -126,7 +124,6 @@
   (known-app-icons))
 
 (defun off ()
-  ;; (load-module "notify")
   (notify:notify-server-off)
   (disconnect-toplevel))
 
