@@ -1,0 +1,61 @@
+#+STARTUP: indent overview align  hidestars oddeven lognotestate inlineimages
+* desktop-notifications for StumpWM
+  Candidate for submission to [[https://github.com/stumpwm/stumpwm-contrib][stumpwm-contrib repo]]
+** Why?
+Always wanted to try my hand at LISP - this is the first thing I ever wrote. It turned out to be useful to me on daily basis.
+** Features
+*** an2linux 'integration'
+Unfortunately, the excellent [[https://github.com/rootkiwi/an2linuxserver/issues/41][an2linuxserver.py]] always [[https://github.com/rootkiwi/an2linuxserver/blob/ce543eec07383ca004eb00619a1447cc95920fc6/an2linuxserver.py#L83][identifies itself as *AN2Linux*]] to org.freedesktop.Notifications interface and the only way to ID an app is by hashing the supplied icon file.
+
+Some icon hashes from my S8 are included as defaults, every unknown icon from an2linux is hashed and renamed to ~ed3c1512xxx.png~ - make sure your lisp has write access to [[https://github.com/rootkiwi/an2linuxserver/blob/ce543eec07383ca004eb00619a1447cc95920fc6/an2linuxserver.py#L768][an2linux tmp file location]].
+
+The ~desktop-notifications:*known-app-icons*~ is the app name and sha256sum hash.
+*** dbus messages
+Everything else that hits the Notifications interface, will not have it's icon hashed, instead the app name will be used directly, ie:
+#+BEGIN_SRC bash
+  notify-send -a 'DN4StumpWM' 'Summary text' 'Message body'
+#+END_SRC
+will produce:
+#+BEGIN_QUOTE
+DN4StumpWM: 1
+#+END_QUOTE
+on the mode-line
+*** TODO README
+*** TODO in-line code documentation?
+*** TODO Configurable colors/delimiters?
+** Usage
+#+BEGIN_SRC lisp
+  (setf desktop-notifications:*db-file*
+        (make-pathname :directory "~/.cache"
+                       :name "notifications.sqlite3")
+        desktop-notifications:*known-app-icons*
+        (cl-hash-util:hash
+         ("WhatsApp"
+          "ed3c15121d92822d3a1a79605b6f341bbf53825cc7c599777b01b7830491f9aa")
+         ("Telegram"
+          "200881a43e2742609375e2f8d974161155f1ac2201e4aeed03e0f348d39a712c"))
+
+        desktop-notifications:*notifications-mode-line-formatter* #\N
+
+        stumpwm:*screen-mode-line-format*
+        (list "%N" stumpwm:*screen-mode-line-format*))
+
+  (desktop-notifications:on)
+
+  (defcommand notifications-show-all () ()
+    (desktop-notifications:menu-show-all-msgs))
+  (defcommand notifications-reset () ()
+    (desktop-notifications:reset))
+  (defcommand notifications-show-all-per-app () ()
+    (desktop-notifications:menu-show-apps-as-categories))
+#+END_SRC
+Maybe bind the commands as well:
+#+BEGIN_SRC lisp
+  (stumpwm:define-key
+      stumpwm:*root-map*
+      (stumpwm:kbd "s-n")
+      "notifications-show-all-per-app")
+#+END_SRC
+** Dependencies
+- [[https://github.com/stumpwm/stumpwm-contrib/blob/master/util/notify/README.org][Notifications server for StumpWM]]
+- Likely quicklisp

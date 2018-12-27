@@ -5,6 +5,7 @@
         #:cl-hash-util)
   (:export *known-app-icons*
            *db-file*
+           *notifications-mode-line-formatter*
            on
            off
            reset

@@ -2,7 +2,6 @@
 (access:enable-dot-syntax)
 
 ;; FIXME: https://github.com/stumpwm/stumpwm/issues/546
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun command-menu (screen items command-list &key (prompt "Select:")
                                                  (initial-selection 0)
                                                  extra-keymap)
@@ -17,8 +16,6 @@
                                   :extra-keymap extra-keymap)))
     (dolist (command-entry command-list)
       (let ((selections (assoc (first command-entry) results))
-            ;; FIXME / TODO: Raise an issue with stumpwm?
-            ;; fixed it here, but maybe it was supposed to be this way?
             (func (second (second command-entry)))
             (options (caddr command-entry)))
         (when selections
@@ -30,7 +27,10 @@
                (funcall func #Dl.data)))
             (t (error (format nil "keyword ~s not a valid command option for selection-menu."
                               options)))))))))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar *notifications-mode-line-formatter* nil)
+(when (null *notifications-mode-line-formatter*)
+  (setf *notifications-mode-line-formatter* #\N))
 
 (defvar *known-app-icons* nil)
 (when (null *known-app-icons*)
@@ -131,9 +131,7 @@
     (update-mode-line-string)
     (uiop:delete-file-if-exists icon)
     (message "^b^n~A /^b^6~A^n/~%^b^n~A"
-             (str:trim #Dnew-msg.summary)
-             ;; (string-trim '(#\Space #\Tab #\Newline)
-             ;;              (remove #\Newline #Dnew-msg.summary))
+             (str:trim (remove #\Newline #Dnew-msg.summary))
              #Dnew-msg.app.name
              #Dnew-msg.body)))
 
@@ -163,7 +161,7 @@
   (initialize-database)
   (add-hook *quit-hook* 'off)
   (setf notify:*notification-received-hook* (list 'notify-to-db))
-  (add-screen-mode-line-formatter #\N 'notifications-mode-line)
+  (add-screen-mode-line-formatter *notifications-mode-line-formatter* 'notifications-mode-line)
   (notify:notify-server-on))
 
 (defun reset ()
@@ -174,7 +172,6 @@
   (known-app-icons)
   (update-mode-line-string))
 
-;; UI
 (defun crud-msg-all ()
   (select-dao 'msg (includes 'app)))
 
@@ -229,20 +226,26 @@
                         #Di))
            items)))
 
+(defvar *menu-prompt-str*
+  "[d] - DEL, [a] - ACK, [u] - UNMARK, [RET] - apply")
+
 (defun menu-show-all-msgs ()
   (command-menu (current-screen)
                 (command-menu-msg-format (crud-msg-all))
-                *commands-msg*)
+                *commands-msg*
+                :prompt *menu-prompt-str*)
   (update-mode-line-string))
 
 (defun menu-show-msgs-for-app (appname)
   (command-menu (current-screen)
                 (command-menu-msg-format (crud-msg-for-app appname))
-                *commands-msg*)
+                *commands-msg*
+                :prompt *menu-prompt-str*)
   (update-mode-line-string))
 
 (defun menu-show-apps-as-categories ()
   (command-menu (current-screen)
                 (command-menu-app-format (crud-app-all))
-                *commands-app*)
+                *commands-app*
+                :prompt *menu-prompt-str*)
   (update-mode-line-string))
