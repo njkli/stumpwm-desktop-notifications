@@ -243,5 +243,3 @@
                 (command-menu-app-format (crud-app-all))
                 *commands-app*)
   (update-mode-line-string))
-
-;; (menu-show-apps-as-categories)
