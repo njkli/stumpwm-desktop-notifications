@@ -2,17 +2,17 @@
 (access:enable-dot-syntax)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun command-menu (screen items command-list &key (prompt "Select:")
-                                                    (initial-selection 0)
-                                                    extra-keymap)
+                                                 (initial-selection 0)
+                                                 extra-keymap)
   (let ((results
-         (select-from-batch-menu screen items
-                                 :prompt prompt
-                                 :allowed-markers (mapcan (lambda (x)
-                                                            (if (first x)
-				                                                        (list (first x))))
-                                                          command-list)
-                                 :initial-selection initial-selection
-                                 :extra-keymap extra-keymap)))
+          (select-from-batch-menu screen items
+                                  :prompt prompt
+                                  :allowed-markers (mapcan (lambda (x)
+                                                             (if (first x)
+                                                                 (list (first x))))
+                                                           command-list)
+                                  :initial-selection initial-selection
+                                  :extra-keymap extra-keymap)))
     (dolist (command-entry command-list)
       (let ((selections (assoc (first command-entry) results))
             ;; FIXME / TODO: Raise an issue with stumpwm?
@@ -128,8 +128,9 @@
     (update-mode-line-string)
     (uiop:delete-file-if-exists icon)
     (message "^b^n~A /^b^6~A^n/~%^b^n~A"
-             (string-trim '(#\Space #\Tab #\Newline)
-                          (remove #\Newline #Dnew-msg.summary))
+             (str:trim #Dnew-msg.summary)
+             ;; (string-trim '(#\Space #\Tab #\Newline)
+             ;;              (remove #\Newline #Dnew-msg.summary))
              #Dnew-msg.app.name
              #Dnew-msg.body)))
 
@@ -174,6 +175,11 @@
 (defun crud-msg-all ()
   (select-dao 'msg (includes 'app)))
 
+(defun crud-msg-for-app (appname)
+  (select-dao 'msg (includes 'app)
+              (mito.dao::where
+               (:= :app (find-dao 'app :name appname)))))
+
 (defun crud-msg-delete (rec)
   (delete-dao rec))
 
@@ -181,22 +187,61 @@
   (setf #Drec.new nil)
   (update-dao rec))
 
-(defparameter *commands-msg*
-      '((#\d 'crud-msg-delete)
-        (#\a 'crud-msg-acknowledge)))
+(defun crud-app-all ()
+  (select-dao 'app))
 
-(defun command-menu-format (items)
+(defun crud-app-delete (rec)
+  (dolist (l (crud-msg-for-app #Drec.name))
+    (crud-msg-delete l)))
+
+(defun crud-app-acknowledge (rec)
+  (dolist (l (crud-msg-for-app #Drec.name))
+    (crud-msg-acknowledge l)))
+
+(defparameter *commands-msg*
+  '((#\d 'crud-msg-delete)
+    (#\a 'crud-msg-acknowledge)))
+
+(defparameter *commands-app*
+  '((#\d 'crud-app-delete)
+    (#\a 'crud-app-acknowledge)))
+
+(defun command-menu-msg-format (items)
   (entries-from-nested-list
    (mapcar (lambda (i) (list
-                        (format nil "[~a] ~a: ~a"
-                                #Di.app.name
+                        (format nil "~15a ~a: ~a"
+                                (str:concat "[" #Di.app.name " ]")
                                 #Di.summary
                                 (str:substring 0 64 #Di.body))
                         #Di))
            items)))
 
+(defun command-menu-app-format (items)
+  (entries-from-nested-list
+   (mapcar (lambda (i) (list
+                        (format nil " ~15a: ~3a (~a)"
+                                (str:concat "[ " #Di.name " ]")
+                                (length (crud-msg-for-app #Di.name))
+                                (str:substring 0 8 #Di.sha256))
+                        #Di))
+           items)))
+
 (defun menu-show-all-msgs ()
   (command-menu (current-screen)
-                (command-menu-format (crud-msg-all))
+                (command-menu-msg-format (crud-msg-all))
                 *commands-msg*)
   (update-mode-line-string))
+
+(defun menu-show-msgs-for-app (appname)
+  (command-menu (current-screen)
+                (command-menu-msg-format (crud-msg-for-app appname))
+                *commands-msg*)
+  (update-mode-line-string))
+
+(defun menu-show-apps-as-categories ()
+  (command-menu (current-screen)
+                (command-menu-app-format (crud-app-all))
+                *commands-app*)
+  (update-mode-line-string))
+
+;; (menu-show-apps-as-categories)

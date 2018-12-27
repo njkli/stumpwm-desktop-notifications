@@ -8,5 +8,7 @@
            on
            off
            reset
-           menu-show-all-msgs)
+           menu-show-all-msgs
+           menu-show-apps-as-categories
+           menu-show-msgs-for-app)
   (:shadow :command-menu))
