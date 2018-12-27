@@ -1,6 +1,34 @@
 (in-package :desktop-notifications)
 (access:enable-dot-syntax)
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun command-menu (screen items command-list &key (prompt "Select:")
+                                                    (initial-selection 0)
+                                                    extra-keymap)
+  (let ((results
+         (select-from-batch-menu screen items
+                                 :prompt prompt
+                                 :allowed-markers (mapcan (lambda (x)
+                                                            (if (first x)
+				                                                        (list (first x))))
+                                                          command-list)
+                                 :initial-selection initial-selection
+                                 :extra-keymap extra-keymap)))
+    (dolist (command-entry command-list)
+      (let ((selections (assoc (first command-entry) results))
+            ;; FIXME / TODO: Raise an issue with stumpwm?
+            ;; fixed it here, but maybe it was supposed to be this way?
+            (func (second (second command-entry)))
+            (options (caddr command-entry)))
+        (when selections
+          (cond
+            ((eql :all options)
+             (funcall func (mapcar '(lambda (l) #Dl.data) (cdr selections))))
+            ((or (eql options :all) (eql options nil))
+             (dolist (l (cdr selections))
+               (funcall func #Dl.data)))
+            (t (error (format nil "keyword ~s not a valid command option for selection-menu."
+                              options)))))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar *known-app-icons* nil)
 (when (null *known-app-icons*)
   (setf *known-app-icons*
@@ -55,7 +83,7 @@
       (let ((msg-count (length (select-dao 'msg
                                  (includes 'app)
                                  (mito.dao::where (:and
-                                                   (:not-null :new)
+                                                   :new
                                                    (:= :app #Dl)))))))
         (if (> msg-count 0)
             (push (format nil "~a: ~a" #Dl.name msg-count)
@@ -140,4 +168,35 @@
   (dolist (dao (select-dao 'app))
     (delete-dao dao))
   (known-app-icons)
+  (update-mode-line-string))
+
+;; UI
+(defun crud-msg-all ()
+  (select-dao 'msg (includes 'app)))
+
+(defun crud-msg-delete (rec)
+  (delete-dao rec))
+
+(defun crud-msg-acknowledge (rec)
+  (setf #Drec.new nil)
+  (update-dao rec))
+
+(defparameter *commands-msg*
+      '((#\d 'crud-msg-delete)
+        (#\a 'crud-msg-acknowledge)))
+
+(defun command-menu-format (items)
+  (entries-from-nested-list
+   (mapcar (lambda (i) (list
+                        (format nil "[~a] ~a: ~a"
+                                #Di.app.name
+                                #Di.summary
+                                (str:substring 0 64 #Di.body))
+                        #Di))
+           items)))
+
+(defun menu-show-all-msgs ()
+  (command-menu (current-screen)
+                (command-menu-format (crud-msg-all))
+                *commands-msg*)
   (update-mode-line-string))

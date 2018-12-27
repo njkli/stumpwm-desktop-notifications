@@ -6,6 +6,7 @@
     :depends-on (:stumpwm
                  ;; notify is loaded from stumpwm-contrib
                  :notify
+                 :str
                  :cl-ppcre
                  :cl-hash-util
                  :access

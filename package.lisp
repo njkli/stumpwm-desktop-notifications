@@ -7,4 +7,5 @@
            *db-file*
            on
            off
-           reset))
+           reset)
+  (:shadow :command-menu))
