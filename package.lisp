@@ -7,5 +7,6 @@
            *db-file*
            on
            off
-           reset)
+           reset
+           menu-show-all-msgs)
   (:shadow :command-menu))
