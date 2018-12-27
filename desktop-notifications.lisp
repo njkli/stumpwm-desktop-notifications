@@ -1,5 +1,7 @@
 (in-package :desktop-notifications)
 (access:enable-dot-syntax)
+
+;; FIXME: https://github.com/stumpwm/stumpwm/issues/546
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun command-menu (screen items command-list &key (prompt "Select:")
                                                  (initial-selection 0)
@@ -29,6 +31,7 @@
             (t (error (format nil "keyword ~s not a valid command option for selection-menu."
                               options)))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defvar *known-app-icons* nil)
 (when (null *known-app-icons*)
   (setf *known-app-icons*
