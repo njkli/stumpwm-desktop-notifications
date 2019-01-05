@@ -1,4 +1,4 @@
-#+STARTUP: indent overview align  hidestars oddeven lognotestate inlineimages
+#+STARTUP: indent overview align hidestars oddeven lognotestate inlineimages
 * desktop-notifications for StumpWM
   Candidate for submission to [[https://github.com/stumpwm/stumpwm-contrib][stumpwm-contrib repo]]
 ** Why?

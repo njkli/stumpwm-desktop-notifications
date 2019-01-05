@@ -50,6 +50,8 @@
           "d1c5fcebcd64931f806e08b6862b2598c18ac4de190770ddd5c071c112902ca9")
          ("G.Maps"
           "222e844de959d6a963b9b0467ebb91bc787eb63845918517ee119a883eeb0f1d")
+         ("Revolut"
+          "e6b1e823cfe1148b714c4a7f32560ca71dce371a7c0073db4d6517e7d2462923")
          ("Updates"
           "650d001aa653b252b7b9e33b7c8ae9c881f357d4a8bd03c446267cbd97285a07"))))
 
@@ -249,3 +251,7 @@
                 *commands-app*
                 :prompt *menu-prompt-str*)
   (update-mode-line-string))
+
+;; TODO: app add/edit interface
+;; (let ((rec (first (select-dao 'app (mito.dao::where (:like :sha256 "%e6b1%"))))))
+;;   (print (slot-value rec 'sha256)))
