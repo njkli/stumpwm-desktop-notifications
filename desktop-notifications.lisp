@@ -54,6 +54,8 @@
           "e6b1e823cfe1148b714c4a7f32560ca71dce371a7c0073db4d6517e7d2462923")
          ("N26"
           "a832af1edca060d050060062165bb387573c25fa29927865c586c9c61b16b475")
+         ("Yandex.Mail"
+          "6f5ccbe8ba68eea8eadaabf0aea32d3b55a6b4f38952f3b9a3935d6d7834d56a")
          ("G.playstore"
           "cce653154bef5edbc5636c780b653e3382318cfee3e2add7211462d23ea3c20e")
          ("Updates"
