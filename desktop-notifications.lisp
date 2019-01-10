@@ -56,6 +56,8 @@
           "a832af1edca060d050060062165bb387573c25fa29927865c586c9c61b16b475")
          ("Yandex.Mail"
           "6f5ccbe8ba68eea8eadaabf0aea32d3b55a6b4f38952f3b9a3935d6d7834d56a")
+         ("Firefox"
+          "d01d10d82a4c0fae771a2b20e877b41b0098289289403e94695d1d75f13b4f5c")
          ("G.playstore"
           "cce653154bef5edbc5636c780b653e3382318cfee3e2add7211462d23ea3c20e")
          ("Updates"
@@ -227,7 +229,7 @@
 (defun command-menu-app-format (items)
   (entries-from-nested-list
    (mapcar (lambda (i) (list
-                        (format nil " ~15a: ~3a (~a)"
+                        (format nil "~15a: ~3a (~a)"
                                 (str:concat "[ " #Di.name " ]")
                                 (length (crud-msg-for-app #Di.name))
                                 (str:substring 0 8 #Di.sha256))
