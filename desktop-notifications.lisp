@@ -60,6 +60,8 @@
           "d01d10d82a4c0fae771a2b20e877b41b0098289289403e94695d1d75f13b4f5c")
          ("G.playstore"
           "cce653154bef5edbc5636c780b653e3382318cfee3e2add7211462d23ea3c20e")
+         ("Samsung updates"
+          "d56a6c1d132a0485bf980b67c186bf25d018e2041aa439d25f244bd0eb798d07")
          ("Updates"
           "650d001aa653b252b7b9e33b7c8ae9c881f357d4a8bd03c446267cbd97285a07"))))
 
